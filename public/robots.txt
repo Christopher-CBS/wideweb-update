@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://votre-site.com/sitemap.xml
+
+# Bloquer l'accès aux fichiers sensibles
+Disallow: /api/
+Disallow: /_next/
+Disallow: /private/
+Disallow: /admin/
+
+# Bloquer l'accès aux fichiers de développement
+Disallow: /*.js$
+Disallow: /*.css$
+Disallow: /*.map$
+
+# Bloquer l'accès aux fichiers de statistiques
+Disallow: /stats/
+Disallow: /analytics/ 
