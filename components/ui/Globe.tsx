@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
 import { useThree, Object3DNode, Canvas, extend } from "@react-three/fiber";
@@ -73,6 +73,11 @@ export function Globe({ globeConfig, data }: WorldProps) {
   >(null);
 
   const globeRef = useRef<ThreeGlobe | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const defaultProps = {
     pointSize: 1,
@@ -92,14 +97,14 @@ export function Globe({ globeConfig, data }: WorldProps) {
   };
 
   useEffect(() => {
-    if (globeRef.current) {
+    if (isMounted && globeRef.current) {
       _buildData();
       _buildMaterial();
     }
-  }, [globeRef.current]);
+  }, [isMounted, globeRef.current]);
 
   const _buildMaterial = () => {
-    if (!globeRef.current) return;
+    if (!globeRef.current || !isMounted) return;
 
     const globeMaterial = globeRef.current.globeMaterial() as unknown as {
       color: Color;
@@ -203,7 +208,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
   };
 
   useEffect(() => {
-    if (!globeRef.current || !globeData) return;
+    if (!isMounted || !globeRef.current || !globeData) return;
 
     const interval = setInterval(() => {
       if (!globeRef.current || !globeData) return;
@@ -221,7 +226,11 @@ export function Globe({ globeConfig, data }: WorldProps) {
     return () => {
       clearInterval(interval);
     };
-  }, [globeRef.current, globeData]);
+  }, [isMounted, globeRef.current, globeData]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>
@@ -232,22 +241,45 @@ export function Globe({ globeConfig, data }: WorldProps) {
 
 export function WebGLRendererConfig() {
   const { gl, size } = useThree();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    gl.setPixelRatio(window.devicePixelRatio);
-    gl.setSize(size.width, size.height);
-    gl.setClearColor(0xffaaff, 0);
-  }, []);
+    if (typeof window !== "undefined" && !isInitialized) {
+      const dpr = window.devicePixelRatio || 1;
+      gl.setPixelRatio(dpr);
+      gl.setSize(size.width, size.height);
+      gl.setClearColor(0xffaaff, 0);
+      setIsInitialized(true);
+    }
+  }, [gl, size, isInitialized]);
 
   return null;
 }
 
 export function World(props: WorldProps) {
   const { globeConfig } = props;
-  const scene = new Scene();
-  scene.fog = new Fog(0xffffff, 400, 2000);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const sceneObjects = useMemo(() => {
+    if (!isMounted) return null;
+
+    const scene = new Scene();
+    scene.fog = new Fog(0xffffff, 400, 2000);
+    const camera = new PerspectiveCamera(50, aspect, 180, 1800);
+
+    return { scene, camera };
+  }, [isMounted]);
+
+  if (!isMounted || !sceneObjects) {
+    return null;
+  }
+
   return (
-    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)}>
+    <Canvas scene={sceneObjects.scene} camera={sceneObjects.camera}>
       <WebGLRendererConfig />
       <ambientLight color={globeConfig.ambientLight} intensity={0.6} />
       <directionalLight
