@@ -79,22 +79,25 @@ export function Globe({ globeConfig, data }: WorldProps) {
     setIsMounted(true);
   }, []);
 
-  const defaultProps = {
-    pointSize: 1,
-    atmosphereColor: "#ffffff",
-    showAtmosphere: true,
-    atmosphereAltitude: 0.1,
-    polygonColor: "rgba(255,255,255,0.7)",
-    globeColor: "#1d072e",
-    emissive: "#000000",
-    emissiveIntensity: 0.1,
-    shininess: 0.9,
-    arcTime: 2000,
-    arcLength: 0.9,
-    rings: 1,
-    maxRings: 3,
-    ...globeConfig,
-  };
+  const defaultProps = useMemo(
+    () => ({
+      pointSize: 1,
+      atmosphereColor: "#ffffff",
+      showAtmosphere: true,
+      atmosphereAltitude: 0.1,
+      polygonColor: "rgba(255,255,255,0.7)",
+      globeColor: "#1d072e",
+      emissive: "#000000",
+      emissiveIntensity: 0.1,
+      shininess: 0.9,
+      arcTime: 2000,
+      arcLength: 0.9,
+      rings: 1,
+      maxRings: 3,
+      ...globeConfig,
+    }),
+    [globeConfig]
+  );
 
   useEffect(() => {
     if (isMounted && globeRef.current) {
@@ -119,6 +122,8 @@ export function Globe({ globeConfig, data }: WorldProps) {
   };
 
   const _buildData = () => {
+    if (!isMounted) return;
+
     const arcs = data;
     let points = [];
     for (let i = 0; i < arcs.length; i++) {
@@ -140,7 +145,6 @@ export function Globe({ globeConfig, data }: WorldProps) {
       });
     }
 
-    // remove duplicates for same lat and lng
     const filteredPoints = points.filter(
       (v, i, a) =>
         a.findIndex((v2) =>
@@ -154,23 +158,23 @@ export function Globe({ globeConfig, data }: WorldProps) {
   };
 
   useEffect(() => {
-    if (globeRef.current && globeData) {
-      globeRef.current
-        .hexPolygonsData(countries.features)
-        .hexPolygonResolution(3)
-        .hexPolygonMargin(0.7)
-        .showAtmosphere(defaultProps.showAtmosphere)
-        .atmosphereColor(defaultProps.atmosphereColor)
-        .atmosphereAltitude(defaultProps.atmosphereAltitude)
-        .hexPolygonColor((e) => {
-          return defaultProps.polygonColor;
-        });
-      startAnimation();
-    }
-  }, [globeData]);
+    if (!isMounted || !globeRef.current || !globeData) return;
+
+    globeRef.current
+      .hexPolygonsData(countries.features)
+      .hexPolygonResolution(3)
+      .hexPolygonMargin(0.7)
+      .showAtmosphere(defaultProps.showAtmosphere)
+      .atmosphereColor(defaultProps.atmosphereColor)
+      .atmosphereAltitude(defaultProps.atmosphereAltitude)
+      .hexPolygonColor((e) => {
+        return defaultProps.polygonColor;
+      });
+    startAnimation();
+  }, [isMounted, globeData]);
 
   const startAnimation = () => {
-    if (!globeRef.current || !globeData) return;
+    if (!isMounted || !globeRef.current || !globeData) return;
 
     globeRef.current
       .arcsData(data)

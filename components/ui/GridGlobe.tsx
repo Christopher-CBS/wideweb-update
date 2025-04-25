@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 
 const World = dynamic(() => import("./Globe").then((m) => m.World), {
   ssr: false,
+  loading: () => <div className="w-full h-full bg-[#1c1c22]" />,
 });
 
 export function GlobeDemo() {
@@ -13,6 +14,10 @@ export function GlobeDemo() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  if (!isMounted) {
+    return <div className="w-full h-full bg-[#1c1c22]" />;
+  }
 
   const globeConfig = {
     pointSize: 4,
@@ -36,10 +41,6 @@ export function GlobeDemo() {
     autoRotate: true,
     autoRotateSpeed: 0.5,
   };
-
-  if (!isMounted) {
-    return null;
-  }
 
   const colors = ["#06b6d4", "#3b82f6", "#6366f1"];
   const sampleArcs = [
@@ -410,7 +411,9 @@ export function GlobeDemo() {
       <div className="max-w-7xl mx-auto w-full relative overflow-hidden h-96 px-4">
         <div className="absolute w-full bottom-0 inset-x-0 h-40 bg-gradient-to-b pointer-events-none select-none from-transparent dark:to-black to-white z-40" />
         <div className="absolute w-full h-72 md:h-full z-10">
-          <World data={sampleArcs} globeConfig={globeConfig} />;
+          <Suspense fallback={<div className="w-full h-full bg-[#1c1c22]" />}>
+            <World data={sampleArcs} globeConfig={globeConfig} />
+          </Suspense>
         </div>
       </div>
     </div>
