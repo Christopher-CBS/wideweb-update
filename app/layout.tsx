@@ -9,10 +9,26 @@ export const metadata: Metadata = {
   title: "WideWeb",
   description: "Web Agency from WideWeb",
   icons: {
-    icon:['/favicon.io?v=4'],
-    apple:['/apple-touch-icon.png?v=4'],
-    shortcut:['/apple-touch-icon.png']
-  }
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        url: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -23,14 +39,14 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={inter.className}>
-      <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
